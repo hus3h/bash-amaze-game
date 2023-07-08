@@ -9,6 +9,7 @@ player_x=14
 player_y=9
 player_width=4
 player_height=2
+cleared_blocks=()
 
 set_dimensions() {
   width=$(( $(tput cols) ))
@@ -117,6 +118,17 @@ get_movement_direction(){
   fi
 }
 
+position_is_cleared(){
+  local i
+  for (( i = 0; i < ${#cleared_blocks[@]}; $(( i+=1 )) )); do
+    if [[ ${cleared_blocks[$i]} == $1 ]];
+    then
+      return 1
+    fi
+  done
+  return 0
+}
+
 set_objects(){
   BLOCKS=( $player_x $player_y $player_width $player_height 22 9 4 2 0 1 1 28 26 1 1 28 0 0 27 1 0 28 27 1 1 1 4 2 1 7 4 2 5 11 5 13 14 22 4 2 22 26 4 2 18 1 4 2 )
   # each 4 elements represent one block
@@ -126,6 +138,7 @@ set_objects(){
 
 render(){
   final_string=""
+  has_missing_blocks=0
   for (( i = 0; i <= $(( height-1 )); i++ )); do
     for (( k = 0; k <= $(( width-1 )); k++ )); do
       printed=0
@@ -140,7 +153,13 @@ render(){
           if [[ ( $k -ge $block_x ) ]] && [[ ( $k -le $block_area_x  ) ]]; then
             if [[ "$j" -ne "0" ]]; then
               final_string="$final_string|"
-            else final_string="$final_string${RED}|${NC}"
+            else
+              final_string="$final_string${RED}|${NC}"
+              position="$k,$i"
+              if position_is_cleared "$position" -eq 0;
+              then
+                cleared_blocks+=($position)
+              fi
             fi
             printed=1
             break
@@ -148,7 +167,14 @@ render(){
         fi
       done
       if [[ "$printed" -eq "0" ]]; then
-        final_string="$final_string."
+        position="$k,$i"
+        if position_is_cleared "$position" -eq 0;
+        then
+          final_string="$final_string."
+          has_missing_blocks=1
+        else
+          final_string="$final_string "
+        fi
       fi
     done
     final_string="$final_string\n"
@@ -176,7 +202,7 @@ cycle(){
     render
     get_movement_direction
     move_block $player_moving
-    sleep 0.05 # you can try lower and higher values
+    sleep 0.01 # you can try lower and higher values
   done
 }
 

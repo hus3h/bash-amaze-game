@@ -9,7 +9,6 @@ player_x=14
 player_y=9
 player_width=4
 player_height=2
-cleared_blocks=()
 
 set_dimensions() {
   width=$(( $(tput cols) ))
@@ -119,14 +118,13 @@ get_movement_direction(){
 }
 
 position_is_cleared(){
-  local i
-  for (( i = 0; i < ${#cleared_blocks[@]}; $(( i+=1 )) )); do
-    if [[ ${cleared_blocks[$i]} == $1 ]];
-    then
-      return 1
-    fi
-  done
-  return 0
+  local c=_BLOCK_$1_$2_IS_CLEAR
+  if [[ $c -eq 1 ]];
+  then
+    return 1
+  else
+    return 0
+  fi
 }
 
 set_objects(){
@@ -155,10 +153,9 @@ render(){
               final_string="$final_string|"
             else
               final_string="$final_string${RED}|${NC}"
-              position="$k,$i"
-              if position_is_cleared "$position" -eq 0;
+              if position_is_cleared "$k" "$i" -eq 0;
               then
-                cleared_blocks+=($position)
+                declare -r -g "_BLOCK_"$k"_"$i"_IS_CLEAR"=1
               fi
             fi
             printed=1
@@ -167,8 +164,7 @@ render(){
         fi
       done
       if [[ "$printed" -eq "0" ]]; then
-        position="$k,$i"
-        if position_is_cleared "$position" -eq 0;
+        if position_is_cleared "$k" "$i" -eq 0;
         then
           final_string="$final_string."
           has_missing_blocks=1

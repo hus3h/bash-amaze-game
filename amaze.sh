@@ -175,6 +175,10 @@ render(){
     done
     final_string="$final_string\n"
   done
+  if [[ $has_missing_blocks -eq 0 ]];
+  then
+    final_string="$final_string\nYou cleared the level!"
+  fi
   if [[ ${#old_string} -ne 0 ]]; then
     for (( i = 0; i < ${#finaL_string}; i++ )); do
       if [[ ${old_string:$i:1} != ${final_string:$i:1} ]]; then

@@ -10,11 +10,22 @@ player_y=9
 player_width=4
 player_height=2
 
+# level
+width=0
+height=0
+
 set_dimensions() {
-  width=$(( $(tput cols) ))
-  height=$(( $(tput lines) ))
-  width=27
-  height=29
+  local j=0;
+  for (( j = 0; j < ${#BLOCKS[@]}; $(( j+=4 )) )); do
+    local current_max_width=$((${BLOCKS[$j]} + ${BLOCKS[$j+2]}));
+    local current_max_height=$((${BLOCKS[$j+1]} + ${BLOCKS[$j+3]}));
+    if [[ $current_max_width -gt $width ]]; then
+      width=$current_max_width
+    fi
+    if [[ $current_max_height -gt $height ]]; then
+      height=$current_max_height
+    fi
+  done
 }
 
 move_block(){ # move player x steps in direction
@@ -197,7 +208,6 @@ render(){
 cycle(){
   while true
   do
-    set_dimensions
     set_objects
     render
     get_movement_direction
@@ -205,5 +215,8 @@ cycle(){
     sleep 0.01 # you can try lower and higher values
   done
 }
+
+set_objects
+set_dimensions
 
 cycle
